@@ -7,8 +7,8 @@ g++ -o CityExplorer.exe ^
     main.cpp globals.cpp player.cpp camera.cpp ^
     environment.cpp collision.cpp lighting.cpp ^
     mission.cpp ui.cpp ^
-    -I"C:/msys64/ucrt64/include" ^
-     -L"C:/msys64/ucrt64/lib" ^
+    -I"C:/mingw64/include" ^
+    -L"C:/mingw64/lib" ^
     -lfreeglut -lopengl32 -lglu32 ^
     -mwindows ^
     2>&1

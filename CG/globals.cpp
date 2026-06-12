@@ -31,6 +31,3 @@ float completionTime  = 0.0f;
 // ─── Window ───────────────────────────────────────────────────────────────────
 int windowWidth  = 1280;
 int windowHeight =  800;
-
-// ─── Transformations (For Presentation) ───────────────────────────────────────
-int activeTransformation = 0;

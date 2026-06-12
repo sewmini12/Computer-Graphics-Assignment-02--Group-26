@@ -363,26 +363,6 @@ void drawHUD()
     snprintf(buf, 64, "In-Game: %02d:%02d", hh, mm);
     drawStr(srX + 12, srY + 10, buf, GLUT_BITMAP_HELVETICA_12);
 
-    // ─── TOP CENTER: Presentation Transformations ──────────────────────────────
-    if (activeTransformation > 0) {
-        float cx = W * 0.5f;
-        float cy = H - 50.0f;
-        const char* transName = "";
-        switch(activeTransformation) {
-            case 1: transName = "1: SCALING"; break;
-            case 2: transName = "2: ROTATION"; break;
-            case 3: transName = "3: TRANSLATION"; break;
-            case 4: transName = "4: SHEARING"; break;
-            case 5: transName = "5: REFLECTION"; break;
-            case 6: transName = "6: COMPOSITE (ANIMATION)"; break;
-        }
-        drawRect(cx - 150, cy - 20, 300, 40, 0.05f, 0.05f, 0.3f, 0.8f);
-        drawRectOutline(cx - 150, cy - 20, 300, 40, 0.3f, 0.5f, 1.0f, 0.9f, 2.0f);
-        glColor3f(1.0f, 1.0f, 0.0f);
-        int len = (int)strlen(transName);
-        drawStr(cx - (len * 4.5f), cy - 6, transName, GLUT_BITMAP_HELVETICA_18);
-    }
-
     // ─── BOTTOM-LEFT: Controls ────────────────────────────────────────────────
     float clW = 300.0f, clH = 100.0f;
     drawRect(10, 10, clW, clH, 0.03f, 0.03f, 0.03f, 0.60f);

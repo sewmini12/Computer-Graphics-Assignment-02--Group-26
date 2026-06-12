@@ -359,86 +359,6 @@ void drawSkyDome()
     glEnable(GL_LIGHTING);
 }
 
-// ─── TEAM PRESENTATION FEATURES ──────────────────────────────────────────────
-// These 6 objects demonstrate the core transformations for the 6 team members.
-void drawTeamTransformations()
-{
-    float t = gameElapsedTime; // Use game timer to animate
-
-    // MEMBER 1: TRANSLATION (A floating drone/blimp)
-    // Concept: Moves along the X-axis over time using glTranslatef.
-    glPushMatrix();
-    float droneX = sinf(t * 0.5f) * 20.0f; // Oscillates between -20 and 20
-    glTranslatef(droneX, 15.0f, -30.0f);   // 1. Translation Applied Here
-    glColor3f(0.8f, 0.2f, 0.2f);
-    glutSolidCube(2.0f);
-    glPopMatrix();
-
-    // MEMBER 2: ROTATION (A spinning collectible or radar)
-    // Concept: Rotates continuously around the Y-axis using glRotatef.
-    glPushMatrix();
-    glTranslatef(15.0f, 2.0f, 15.0f);
-    glRotatef(t * 90.0f, 0.0f, 1.0f, 0.0f); // 2. Rotation Applied Here
-    glColor3f(0.8f, 0.8f, 0.2f);
-    glutSolidTorus(0.2f, 1.0f, 10, 20);
-    glPopMatrix();
-
-    // MEMBER 3: SCALING (A pulsating beacon/crystal)
-    // Concept: Grows and shrinks smoothly using glScalef.
-    glPushMatrix();
-    glTranslatef(-15.0f, 2.0f, 15.0f);
-    float scale = 1.0f + sinf(t * 3.0f) * 0.5f; // Scales between 0.5 and 1.5
-    glScalef(scale, scale, scale);              // 3. Scaling Applied Here
-    glColor3f(0.2f, 0.8f, 0.8f);
-    glutSolidOctahedron();
-    glPopMatrix();
-
-    // MEMBER 4: SHEARING (A billboard swaying in the wind)
-    // Concept: Modifying the transformation matrix directly to shear along X/Y.
-    glPushMatrix();
-    glTranslatef(0.0f, 0.0f, -20.0f);
-    float shearValue = sinf(t * 2.0f) * 0.5f;
-    GLfloat shearMatrix[16] = {
-        1.0f, 0.0f, 0.0f, 0.0f,
-        shearValue, 1.0f, 0.0f, 0.0f, // 4. Shearing Matrix Applied Here
-        0.0f, 0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 0.0f, 1.0f
-    };
-    glMultMatrixf(shearMatrix);                 
-    glColor3f(0.3f, 0.8f, 0.3f);
-    glScalef(4.0f, 6.0f, 0.5f);
-    glTranslatef(0.0f, 0.5f, 0.0f); // Move up so bottom is at origin
-    glutSolidCube(1.0f);
-    glPopMatrix();
-
-    // MEMBER 5: REFLECTION (A mirrored sculpture)
-    // Concept: Drawing the object, then drawing it inverted over a plane.
-    glPushMatrix();
-    glTranslatef(-20.0f, 3.0f, -20.0f);
-    // Draw Original
-    glColor3f(0.6f, 0.2f, 0.6f);
-    glutSolidTeapot(1.5f);
-    // Draw Reflection (Mirrored across Y-axis relative to its base)
-    glTranslatef(0.0f, -3.0f, 0.0f); // Go to ground
-    glScalef(1.0f, -1.0f, 1.0f);     // 5. Reflection Applied Here (flip Y)
-    glTranslatef(0.0f, 3.0f, 0.0f);  // Go back up inverted
-    glColor3f(0.3f, 0.1f, 0.3f);     // Darker to look like a shadow/reflection
-    glutSolidTeapot(1.5f);
-    glPopMatrix();
-
-    // MEMBER 6: COMPOSITE (Orbiting satellite around a point)
-    // Concept: Combining Translation, Rotation, and Scaling sequentially.
-    glPushMatrix();
-    glTranslatef(20.0f, 10.0f, -20.0f);      // Base Translation
-    glRotatef(t * 45.0f, 0.0f, 1.0f, 0.0f);  // Orbit Rotation
-    glTranslatef(5.0f, 0.0f, 0.0f);          // Orbit Radius Translation
-    glRotatef(t * 180.0f, 1.0f, 1.0f, 1.0f); // Self Spin Rotation
-    glScalef(0.5f, 0.5f, 0.5f);              // Scaling Down
-    glColor3f(0.9f, 0.9f, 0.9f);             // 6. Composite Applied Here
-    glutSolidIcosahedron();
-    glPopMatrix();
-}
-
 // ─── drawEnvironment ─────────────────────────────────────────────────────────
 void drawEnvironment()
 {
@@ -447,5 +367,4 @@ void drawEnvironment()
     drawBuildings();
     drawTrees();
     drawStreetLamps();
-    drawTeamTransformations();
 }

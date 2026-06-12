@@ -77,7 +77,6 @@ void keyboard(unsigned char key, int x, int y)
     if (!gameCompleted) {
         if (key == '+' || key == '=') daySpeed *= 2.0f;
         if (key == '-' || key == '_') daySpeed *= 0.5f;
-        if (key >= '0' && key <= '6') activeTransformation = key - '0';
         movePlayer(key);
     }
     glutPostRedisplay();
@@ -143,8 +142,6 @@ int main(int argc, char** argv)
     printf("    Left-drag mouse    : Orbit camera\n");
     printf("    Scroll wheel       : Zoom in / out\n");
     printf("    + / -              : Speed up / slow down day cycle\n");
-    printf("    1-6                : Presentation Transformations\n");
-    printf("    0                  : Normal Mode\n");
     printf("    ESC                : Quit\n");
     printf("==========================================================\n");
     printf("  Complete all 6 missions as fast as possible!\n");

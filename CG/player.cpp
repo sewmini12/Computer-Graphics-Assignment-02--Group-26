@@ -155,49 +155,6 @@ void drawPlayer()
     glTranslatef(playerX, playerY + bobY, playerZ);
     glRotatef(playerAngle, 0, 1, 0);
 
-    // ─── PRESENTATION TRANSFORMATIONS ─────────────────────────────────────────
-    float timeSec = glutGet(GLUT_ELAPSED_TIME) * 0.001f;
-    if (activeTransformation == 1) { // SCALING
-        float s = 1.0f + 0.5f * sinf(timeSec * 3.0f); // scale from 0.5 to 1.5
-        glScalef(s, s, s);
-    } 
-    else if (activeTransformation == 2) { // ROTATION
-        glRotatef(timeSec * 180.0f, 0, 1, 0); // constant spin around Y
-        glRotatef(timeSec * 90.0f, 1, 0, 0);  // tumbling around X
-    }
-    else if (activeTransformation == 3) { // TRANSLATION
-        glTranslatef(0.0f, 2.0f + 2.0f * sinf(timeSec * 4.0f), 0.0f); // floating up and down
-    }
-    else if (activeTransformation == 4) { // SHEARING
-        // Shearing matrix (skew X as a function of Y)
-        float skew = 0.5f * sinf(timeSec * 4.0f); // dynamic skew
-        float m[16] = {
-            1.0f, 0.0f, 0.0f, 0.0f,
-            skew, 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-        };
-        glMultMatrixf(m);
-    }
-    else if (activeTransformation == 5) { // REFLECTION
-        // Reflect across the XZ plane (upside down)
-        glTranslatef(0.0f, 2.0f, 0.0f);
-        glScalef(1.0f, -1.0f, 1.0f);
-    }
-    else if (activeTransformation == 6) { // COMPOSITE
-        float s = 1.0f + 0.3f * sinf(timeSec * 5.0f);
-        glTranslatef(0.0f, 1.0f, 0.0f);      // Translation
-        glRotatef(timeSec * 360.0f, 0, 1, 0); // Rotation
-        glScalef(s, s, s);                   // Scaling
-        float m[16] = {
-            1.0f, 0.0f, 0.0f, 0.0f,
-            0.5f * sinf(timeSec*2.0f), 1.0f, 0.0f, 0.0f,
-            0.0f, 0.0f, 1.0f, 0.0f,
-            0.0f, 0.0f, 0.0f, 1.0f
-        };
-        glMultMatrixf(m);                    // Shearing
-    }
-
     // ── Skin color ──────────────────────────────────────────────────────
     const float SKIN_R = 0.83f, SKIN_G = 0.66f, SKIN_B = 0.50f;
     // Clothing colors

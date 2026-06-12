@@ -37,7 +37,4 @@ extern float completionTime;    // time in seconds when game was completed
 extern int windowWidth;
 extern int windowHeight;
 
-// ─── Transformations (For Presentation) ───────────────────────────────────────
-extern int activeTransformation;
-
 #endif // GLOBALS_H
