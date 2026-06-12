@@ -32,7 +32,3 @@ Run the game:
 ./CityGame
 
 
-
-[Add name here] - [Role/Topic]
-
-[Add name here] - [Role/Topic]
