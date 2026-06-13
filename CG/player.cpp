@@ -127,6 +127,8 @@ void updatePlayer(float dt)
 // ─── Player movement ─────────────────────────────────────────────────────────
 void movePlayer(unsigned char key)
 {
+    isSprinting = ((glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0) || (key >= 'A' && key <= 'Z');
+
     float yawRad   = camYaw * 3.14159265f / 180.0f;
     float forwardX = -sinf(yawRad);
     float forwardZ = -cosf(yawRad);
@@ -134,19 +136,23 @@ void movePlayer(unsigned char key)
     float rightZ   = -sinf(yawRad);
 
     float dx = 0.0f, dz = 0.0f;
+    float currentSpeed = playerSpeed;
+    if (isSprinting) {
+        currentSpeed = playerSpeed * 1.8f;
+    }
 
     switch (key) {
         case 'w': case 'W':
-            dx = forwardX * playerSpeed; dz = forwardZ * playerSpeed;
+            dx = forwardX * currentSpeed; dz = forwardZ * currentSpeed;
             targetPlayerAngle = -camYaw; break;           // face forward (same as camera)
         case 's': case 'S':
-            dx = -forwardX * playerSpeed; dz = -forwardZ * playerSpeed;
+            dx = -forwardX * currentSpeed; dz = -forwardZ * currentSpeed;
             targetPlayerAngle = -camYaw + 180.0f; break;  // face backward
         case 'a': case 'A':
-            dx = -rightX * playerSpeed; dz = -rightZ * playerSpeed;
+            dx = -rightX * currentSpeed; dz = -rightZ * currentSpeed;
             targetPlayerAngle = -camYaw + 90.0f; break;   // face left
         case 'd': case 'D':
-            dx = rightX * playerSpeed; dz = rightZ * playerSpeed;
+            dx = rightX * currentSpeed; dz = rightZ * currentSpeed;
             targetPlayerAngle = -camYaw - 90.0f; break;   // face right
         default: return;
     }
@@ -275,6 +281,19 @@ static void drawBody(float alpha = 1.0f)
     glScalef(1.5f, 0.8f, 0.9f);
     sph(0.16f, 14, 10);
     glPopMatrix();
+
+    // CG Concept: Shearing
+    if (isSprinting) {
+        glPushMatrix();
+        float sh = -0.18f; // Lean forward
+        float shearMat[16] = {
+            1.0f,    sh, 0.0f, 0.0f, // col 0
+            0.0f,  1.0f, 0.0f, 0.0f, // col 1
+            0.0f,  0.0f, 1.0f, 0.0f, // col 2
+            0.0f,  0.0f, 0.0f, 1.0f  // col 3
+        };
+        glMultMatrixf(shearMat);
+    }
 
     // ════════════════════════════════
     //   TORSO
@@ -527,6 +546,10 @@ static void drawBody(float alpha = 1.0f)
     glPushMatrix(); glTranslatef(0, -0.12f, -0.05f); cyl(0.020f, 0.13f, 8); glPopMatrix();
 
     glPopMatrix(); // weapon
+
+    if (isSprinting) {
+        glPopMatrix();
+    }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -618,3 +641,15 @@ void drawPlayer()
         drawBody();
     glPopMatrix();
 }
+
+// CG Concept: Reflection helper
+void drawPlayerBody()
+{
+    drawBody();
+}
+
+float getPlayerBobY()
+{
+    return bobY;
+}
+

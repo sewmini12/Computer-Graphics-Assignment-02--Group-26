@@ -31,3 +31,10 @@ float completionTime  = 0.0f;
 // ─── Window ───────────────────────────────────────────────────────────────────
 int windowWidth  = 1280;
 int windowHeight =  800;
+
+// ─── Graphics Concepts State ──────────────────────────────────────────────────
+bool showReflection    = false;
+bool showTransformDemo = false;
+bool splitScreen       = false;
+bool isSprinting       = false;
+

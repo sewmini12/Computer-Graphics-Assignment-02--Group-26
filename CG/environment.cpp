@@ -3,6 +3,7 @@
 #include "environment.h"
 #include "collision.h"
 #include "globals.h"
+#include "player.h"
 
 // ─── Building descriptor ──────────────────────────────────────────────────────
 struct Building {
@@ -183,9 +184,134 @@ static void drawOneBuilding(const Building& b)
     glTranslatef(b.x, b.h * 0.5f, b.z);
     glScalef(b.w, b.h, b.d);
 
-    // Main facade
-    glColor3f(b.r, b.g, b.b);
-    glutSolidCube(1.0f);
+    // CG Concept: Texture-like procedural checkerboard shading
+    glBegin(GL_QUADS);
+    // 1. Front face (+Z)
+    glNormal3f(0.0f, 0.0f, 1.0f);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            bool dark = (i + j) % 2 == 0;
+            if (dark) {
+                glColor3f(b.r * 0.75f, b.g * 0.75f, b.b * 0.75f);
+            } else {
+                glColor3f(b.r, b.g, b.b);
+            }
+            float x0 = -0.5f + i * 0.25f;
+            float x1 = x0 + 0.25f;
+            float y0 = -0.5f + j * 0.25f;
+            float y1 = y0 + 0.25f;
+            glVertex3f(x0, y0, 0.5f);
+            glVertex3f(x1, y0, 0.5f);
+            glVertex3f(x1, y1, 0.5f);
+            glVertex3f(x0, y1, 0.5f);
+        }
+    }
+
+    // 2. Back face (-Z)
+    glNormal3f(0.0f, 0.0f, -1.0f);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            bool dark = (i + j) % 2 == 0;
+            if (dark) {
+                glColor3f(b.r * 0.75f, b.g * 0.75f, b.b * 0.75f);
+            } else {
+                glColor3f(b.r, b.g, b.b);
+            }
+            float x0 = 0.5f - i * 0.25f;
+            float x1 = x0 - 0.25f;
+            float y0 = -0.5f + j * 0.25f;
+            float y1 = y0 + 0.25f;
+            glVertex3f(x0, y0, -0.5f);
+            glVertex3f(x1, y0, -0.5f);
+            glVertex3f(x1, y1, -0.5f);
+            glVertex3f(x0, y1, -0.5f);
+        }
+    }
+
+    // 3. Left face (-X)
+    glNormal3f(-1.0f, 0.0f, 0.0f);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            bool dark = (i + j) % 2 == 0;
+            if (dark) {
+                glColor3f(b.r * 0.75f, b.g * 0.75f, b.b * 0.75f);
+            } else {
+                glColor3f(b.r, b.g, b.b);
+            }
+            float z0 = -0.5f + i * 0.25f;
+            float z1 = z0 + 0.25f;
+            float y0 = -0.5f + j * 0.25f;
+            float y1 = y0 + 0.25f;
+            glVertex3f(-0.5f, y0, z0);
+            glVertex3f(-0.5f, y0, z1);
+            glVertex3f(-0.5f, y1, z1);
+            glVertex3f(-0.5f, y1, z0);
+        }
+    }
+
+    // 4. Right face (+X)
+    glNormal3f(1.0f, 0.0f, 0.0f);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            bool dark = (i + j) % 2 == 0;
+            if (dark) {
+                glColor3f(b.r * 0.75f, b.g * 0.75f, b.b * 0.75f);
+            } else {
+                glColor3f(b.r, b.g, b.b);
+            }
+            float z0 = 0.5f - i * 0.25f;
+            float z1 = z0 - 0.25f;
+            float y0 = -0.5f + j * 0.25f;
+            float y1 = y0 + 0.25f;
+            glVertex3f(0.5f, y0, z0);
+            glVertex3f(0.5f, y0, z1);
+            glVertex3f(0.5f, y1, z1);
+            glVertex3f(0.5f, y1, z0);
+        }
+    }
+
+    // 5. Top face (+Y)
+    glNormal3f(0.0f, 1.0f, 0.0f);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            bool dark = (i + j) % 2 == 0;
+            if (dark) {
+                glColor3f(b.r * 0.75f, b.g * 0.75f, b.b * 0.75f);
+            } else {
+                glColor3f(b.r, b.g, b.b);
+            }
+            float x0 = -0.5f + i * 0.25f;
+            float x1 = x0 + 0.25f;
+            float z0 = -0.5f + j * 0.25f;
+            float z1 = z0 + 0.25f;
+            glVertex3f(x0, 0.5f, z0);
+            glVertex3f(x1, 0.5f, z0);
+            glVertex3f(x1, 0.5f, z1);
+            glVertex3f(x0, 0.5f, z1);
+        }
+    }
+
+    // 6. Bottom face (-Y)
+    glNormal3f(0.0f, -1.0f, 0.0f);
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) {
+            bool dark = (i + j) % 2 == 0;
+            if (dark) {
+                glColor3f(b.r * 0.75f, b.g * 0.75f, b.b * 0.75f);
+            } else {
+                glColor3f(b.r, b.g, b.b);
+            }
+            float x0 = -0.5f + i * 0.25f;
+            float x1 = x0 + 0.25f;
+            float z0 = 0.5f - j * 0.25f;
+            float z1 = z0 - 0.25f;
+            glVertex3f(x0, -0.5f, z0);
+            glVertex3f(x1, -0.5f, z0);
+            glVertex3f(x1, -0.5f, z1);
+            glVertex3f(x0, -0.5f, z1);
+        }
+    }
+    glEnd();
     glPopMatrix();
 
     // Draw Glowing Windows on all 4 sides of the building
@@ -359,6 +485,84 @@ void drawSkyDome()
     glEnable(GL_LIGHTING);
 }
 
+// ─── CG Concept: Reflection ──────────────────────────────────────────────────
+void drawReflectivePool()
+{
+    // Draw the concrete border around the pool
+    glColor3f(0.5f, 0.5f, 0.5f);
+    glBegin(GL_QUADS);
+        glNormal3f(0, 1, 0);
+        glVertex3f(-49.0f, 0.008f, 31.0f);
+        glVertex3f(-31.0f, 0.008f, 31.0f);
+        glVertex3f(-31.0f, 0.008f, 49.0f);
+        glVertex3f(-49.0f, 0.008f, 49.0f);
+    glEnd();
+
+    if (showReflection) {
+        // Clear stencil buffer
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glEnable(GL_STENCIL_TEST);
+
+        // Step 1: write pool area to stencil buffer
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+        // Disable color and depth writes
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        glDepthMask(GL_FALSE);
+
+        // Draw the pool area quad to stencil buffer
+        glBegin(GL_QUADS);
+            glVertex3f(-48.0f, 0.01f, 32.0f);
+            glVertex3f(-32.0f, 0.01f, 32.0f);
+            glVertex3f(-32.0f, 0.01f, 48.0f);
+            glVertex3f(-48.0f, 0.01f, 48.0f);
+        glEnd();
+
+        // Re-enable color and depth writes
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+        glDepthMask(GL_TRUE);
+
+        // Step 2: draw reflected scene only where stencil=1
+        glStencilFunc(GL_EQUAL, 1, 0xFF);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+        glPushMatrix();
+            // Reflection plane is y=0.01f, so mirror about it:
+            // y' = -y + 0.02
+            glTranslatef(0.0f, 0.02f, 0.0f);
+            glScalef(1.0f, -1.0f, 1.0f);
+            glFrontFace(GL_CW); // Flip normals winding
+
+            // Draw player body reflected under the pool
+            glPushMatrix();
+                glTranslatef(playerX, playerY + getPlayerBobY(), playerZ);
+                glRotatef(playerAngle, 0, 1, 0);
+                drawPlayerBody();
+            glPopMatrix();
+
+            glFrontFace(GL_CCW); // Restore normal winding
+        glPopMatrix();
+
+        glDisable(GL_STENCIL_TEST);
+    }
+
+    // Step 3: draw semi-transparent blue water quad on top
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDepthMask(GL_FALSE);
+    glColor4f(0.1f, 0.4f, 0.8f, 0.45f); // alpha ~0.45
+    glBegin(GL_QUADS);
+        glNormal3f(0, 1, 0);
+        glVertex3f(-48.0f, 0.01f, 32.0f);
+        glVertex3f(-32.0f, 0.01f, 32.0f);
+        glVertex3f(-32.0f, 0.01f, 48.0f);
+        glVertex3f(-48.0f, 0.01f, 48.0f);
+    glEnd();
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+}
+
 // ─── drawEnvironment ─────────────────────────────────────────────────────────
 void drawEnvironment()
 {
@@ -367,4 +571,5 @@ void drawEnvironment()
     drawBuildings();
     drawTrees();
     drawStreetLamps();
+    drawReflectivePool();
 }

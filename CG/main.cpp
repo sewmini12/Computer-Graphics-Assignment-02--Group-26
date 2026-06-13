@@ -16,6 +16,7 @@ static int   lastTime  = 0;
 static float deltaTime = 0.016f;
 
 // ─── display ─────────────────────────────────────────────────────────────────
+// CG Concept: Viewport Clipping
 void display()
 {
     int now = glutGet(GLUT_ELAPSED_TIME);
@@ -36,19 +37,51 @@ void display()
     updateFlash(deltaTime);
 
     // ── Render ───────────────────────────────────────────────────────────────
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(60.0, (double)windowWidth / windowHeight, 0.1, 500.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    if (splitScreen) {
+        // Left half: normal 3D scene
+        glViewport(0, 0, windowWidth / 2, windowHeight);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(60.0, (double)(windowWidth / 2) / windowHeight, 0.1, 500.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        applyCamera();
 
-    applyCamera();
+        drawEnvironment();
+        drawMissionMarkers();
+        drawPlayer();
 
-    drawEnvironment();
-    drawMissionMarkers();
-    drawPlayer();
+        // Right half: top-down orthographic view
+        glViewport(windowWidth / 2, 0, windowWidth / 2, windowHeight);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-100.0, 100.0, -100.0, 100.0, 0.1, 500.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        // Camera looking straight down
+        gluLookAt(playerX, 120.0, playerZ, playerX, 0.0, playerZ, 0.0, 0.0, -1.0);
+
+        drawEnvironment();
+        drawMissionMarkers();
+        drawPlayer();
+
+        // Restore default viewport
+        glViewport(0, 0, windowWidth, windowHeight);
+    } else {
+        glViewport(0, 0, windowWidth, windowHeight);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(60.0, (double)windowWidth / windowHeight, 0.1, 500.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        applyCamera();
+
+        drawEnvironment();
+        drawMissionMarkers();
+        drawPlayer();
+    }
 
     // 2-D HUD / Scoreboard
     drawHUD();
@@ -77,6 +110,13 @@ void keyboard(unsigned char key, int x, int y)
     if (!gameCompleted) {
         if (key == '+' || key == '=') daySpeed *= 2.0f;
         if (key == '-' || key == '_') daySpeed *= 0.5f;
+
+        switch (key) {
+            case 'r': case 'R': showReflection = !showReflection; break;
+            case 't': case 'T': showTransformDemo = !showTransformDemo; break;
+            case 'v': case 'V': splitScreen = !splitScreen; break;
+        }
+
         movePlayer(key);
     }
     glutPostRedisplay();
@@ -85,8 +125,21 @@ void keyboard(unsigned char key, int x, int y)
 void keyboardSpecial(int key, int x, int y)
 {
     (void)x; (void)y;
+    isSprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0;
     if (!gameCompleted) movePlayerSpecial(key);
     glutPostRedisplay();
+}
+
+void keyboardUp(unsigned char key, int x, int y)
+{
+    (void)x; (void)y;
+    isSprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0;
+}
+
+void keyboardSpecialUp(int key, int x, int y)
+{
+    (void)x; (void)y;
+    isSprinting = (glutGetModifiers() & GLUT_ACTIVE_SHIFT) != 0;
 }
 
 // ─── idle ────────────────────────────────────────────────────────────────────
@@ -117,18 +170,20 @@ void init()
 int main(int argc, char** argv)
 {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_MULTISAMPLE);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH | GLUT_STENCIL | GLUT_MULTISAMPLE);
     glutInitWindowSize(windowWidth, windowHeight);
     glutInitWindowPosition(40, 40);
 
-    glutCreateWindow("City Explorer  |  PUBG Edition  |  WASD: Move  |  Mouse: Camera  |  ESC: Quit");
+    glutCreateWindow("City Explorer | R=Reflection  T=TransformDemo  V=SplitView | WASD: Move | Mouse: Camera | ESC: Quit");
 
     init();
 
     glutDisplayFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
+    glutKeyboardUpFunc(keyboardUp);
     glutSpecialFunc(keyboardSpecial);
+    glutSpecialUpFunc(keyboardSpecialUp);
     glutMouseFunc(cameraMouseButton);
     glutMotionFunc(cameraMouseMotion);
     glutMouseWheelFunc(cameraMouseWheel);

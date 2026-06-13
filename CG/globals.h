@@ -37,4 +37,11 @@ extern float completionTime;    // time in seconds when game was completed
 extern int windowWidth;
 extern int windowHeight;
 
+// ─── Graphics Concepts State ──────────────────────────────────────────────────
+extern bool showReflection;      // R key
+extern bool showTransformDemo;   // T key
+extern bool splitScreen;         // V key
+extern bool isSprinting;         // Shift key (active movement)
+
 #endif // GLOBALS_H
+
