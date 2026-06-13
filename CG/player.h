@@ -14,4 +14,7 @@ void drawPlayer();
 // Update animation timers (call every frame)
 void updatePlayer(float dt);
 
+// ─── Getters for HUD display ───────────────────────────────────────────────
+float getPlayerLegSwing();   // current thigh swing angle (degrees)
+
 #endif // PLAYER_H
