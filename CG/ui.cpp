@@ -5,6 +5,7 @@
 #include "ui.h"
 #include "globals.h"
 #include "mission.h"
+#include "player.h"
 
 // ─── Flash message ─────────────────────────────────────────────────────────────
 static char  flashMsg[128] = "";
@@ -377,7 +378,7 @@ void drawHUD()
     drawStr(20, 12, "ESC                :  Quit", GLUT_BITMAP_HELVETICA_12);
 
     // ─── BOTTOM-RIGHT: Minimap-style Position ────────────────────────────────
-    float mpW = 190.0f, mpH = 70.0f;
+    float mpW = 230.0f, mpH = 70.0f;
     float mpX = W - mpW - 10.0f;
     drawRect(mpX, 10, mpW, mpH, 0.03f, 0.03f, 0.03f, 0.60f);
     drawRectOutline(mpX, 10, mpW, mpH, 0.4f, 0.4f, 0.3f, 0.5f);
@@ -399,6 +400,51 @@ void drawHUD()
     glColor3f(1.0f, 0.4f, 0.2f);
     snprintf(buf, 64, "DIR: %s", dirLabel);
     drawStr(mpX + 10, 24, buf, GLUT_BITMAP_HELVETICA_12);
+
+    // ─── BOTTOM-CENTER: CG Transforms Info Panel ─────────────────────────────
+    // Shows the 4 fundamental CG transforms currently active on the player
+    float tpW = 360.0f, tpH = 120.0f;
+    float tpX = (W - tpW) * 0.5f;
+    float tpY = 10.0f;
+
+    // Panel background
+    drawRect(tpX, tpY, tpW, tpH, 0.04f, 0.03f, 0.08f, 0.78f);
+    drawRectOutline(tpX, tpY, tpW, tpH, 0.45f, 0.25f, 0.80f, 0.85f, 1.5f);
+
+    // Header
+    drawRect(tpX, tpY + tpH - 22, tpW, 22, 0.12f, 0.07f, 0.22f, 0.90f);
+    glColor3f(0.75f, 0.55f, 1.0f);
+    drawStr(tpX + 12, tpY + tpH - 14, "[ CG TRANSFORMS — PLAYER ]", GLUT_BITMAP_HELVETICA_12);
+
+    // Row 1 — Translation
+    glColor3f(0.30f, 0.90f, 0.50f);
+    snprintf(buf, 128, "T  Translation   : (%+.1f, %.2f, %+.1f)",
+             playerX, playerY, playerZ);
+    drawStr(tpX + 10, tpY + tpH - 40, buf, GLUT_BITMAP_HELVETICA_12);
+
+    // Row 2 — Rotation
+    glColor3f(0.40f, 0.75f, 1.00f);
+    snprintf(buf, 128, "R  Rotation (Y)  :  %.1f deg  [leg swing: %.1f]",
+             playerAngle, getPlayerLegSwing());
+    drawStr(tpX + 10, tpY + tpH - 57, buf, GLUT_BITMAP_HELVETICA_12);
+
+    // Row 3 — Reflection
+    glColor3f(1.00f, 0.65f, 0.25f);
+    drawStr(tpX + 10, tpY + tpH - 74,
+            "Ref Reflection(Y): Scale(1,-1,1) — mirror below ground",
+            GLUT_BITMAP_HELVETICA_12);
+
+    // Row 4 — Shearing (shadow)
+    glColor3f(1.00f, 0.35f, 0.45f);
+    drawStr(tpX + 10, tpY + tpH - 91,
+            "Sh  Shear Shadow : M[1][0]=sunX, M[1][2]=sunZ (oblique proj)",
+            GLUT_BITMAP_HELVETICA_12);
+
+    // Leg movement indicator
+    glColor3f(0.70f, 0.70f, 0.70f);
+    drawStr(tpX + 10, tpY + 6,
+            "Legs: Thigh rot -> Knee bend -> Shin -> Ankle -> Foot (translation+scale)",
+            GLUT_BITMAP_HELVETICA_12);
 
     // ─── CENTER FLASH message ─────────────────────────────────────────────────
     if (flashTimer < flashDuration) {
