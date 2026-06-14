@@ -49,6 +49,7 @@ void display()
         glLoadIdentity();
         applyCamera();
 
+        drawMoon();
         drawEnvironment();
         drawMissionMarkers();
         drawPlayer();
@@ -63,6 +64,7 @@ void display()
         // Camera looking straight down
         gluLookAt(playerX, 120.0, playerZ, playerX, 0.0, playerZ, 0.0, 0.0, -1.0);
 
+        drawMoon();
         drawEnvironment();
         drawMissionMarkers();
         drawPlayer();
@@ -78,6 +80,7 @@ void display()
         glLoadIdentity();
         applyCamera();
 
+        drawMoon();
         drawEnvironment();
         drawMissionMarkers();
         drawPlayer();
@@ -110,13 +113,12 @@ void keyboard(unsigned char key, int x, int y)
     if (!gameCompleted) {
         if (key == '+' || key == '=') daySpeed *= 2.0f;
         if (key == '-' || key == '_') daySpeed *= 0.5f;
-
         switch (key) {
             case 'r': case 'R': showReflection = !showReflection; break;
             case 't': case 'T': showTransformDemo = !showTransformDemo; break;
             case 'v': case 'V': splitScreen = !splitScreen; break;
+            case 'f': case 'F': firstPerson = !firstPerson; break;
         }
-
         movePlayer(key);
     }
     glutPostRedisplay();

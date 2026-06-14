@@ -7,4 +7,6 @@ void initLighting();
 // Update sun/sky colour every frame based on timeOfDay
 void updateLighting();
 
+void drawMoon();
+
 #endif // LIGHTING_H

@@ -30,6 +30,9 @@ static const Building buildings[] = {
     {  40,   40,  5,  5,  8,  0.60f, 0.70f, 0.50f },
     {  25,  -50,  4,  4,  5,  0.80f, 0.55f, 0.35f },
     { -25,   50,  4,  4,  6,  0.35f, 0.65f, 0.80f },
+    { -60,   10,  8,  8, 28,  0.70f, 0.75f, 0.95f },  // skyscraper
+    {  55,   -5, 12,  6,  4,  0.60f, 0.50f, 0.40f },  // warehouse
+    { -20,   50,  4,  4,  3,  0.80f, 0.80f, 0.60f },  // pavilion
 };
 
 static const int NUM_BUILDINGS = sizeof(buildings) / sizeof(buildings[0]);
@@ -156,25 +159,26 @@ void drawRoads()
     glEnd();
 
     // ── Centre line dashes ────────────────────────────────────────────────────
-    glColor3f(0.95f, 0.95f, 0.1f);
-    for (int i = -9; i <= 9; ++i) {
-        float z0 = i * 10.5f;
-        float z1 = z0 + 5.5f;
-        glBegin(GL_QUADS);
-            glNormal3f(0,1,0);
-            glVertex3f(-0.15f, 0.02f, z0);
-            glVertex3f( 0.15f, 0.02f, z0);
-            glVertex3f( 0.15f, 0.02f, z1);
-            glVertex3f(-0.15f, 0.02f, z1);
-        glEnd();
-        glBegin(GL_QUADS);
-            glNormal3f(0,1,0);
-            glVertex3f(z0, 0.02f, -0.15f);
-            glVertex3f(z1, 0.02f, -0.15f);
-            glVertex3f(z1, 0.02f,  0.15f);
-            glVertex3f(z0, 0.02f,  0.15f);
-        glEnd();
-    }
+    glColor3f(1.0f, 1.0f, 1.0f);
+    glLineWidth(2.0f);
+    glEnable(GL_LINE_STIPPLE);
+    glLineStipple(3, 0x0C0F); // manual dashes
+
+    glBegin(GL_LINES);
+        // Z road
+        for (float z = -100.0f; z < 100.0f; z += 5.0f) {
+            glVertex3f(0.0f, 0.02f, z);
+            glVertex3f(0.0f, 0.02f, z + 2.5f);
+        }
+        // X road
+        for (float x = -100.0f; x < 100.0f; x += 5.0f) {
+            glVertex3f(x, 0.02f, 0.0f);
+            glVertex3f(x + 2.5f, 0.02f, 0.0f);
+        }
+    glEnd();
+
+    glDisable(GL_LINE_STIPPLE);
+    glLineWidth(1.0f);
 }
 
 // ─── Helper: draw one building ───────────────────────────────────────────────
@@ -561,6 +565,42 @@ void drawReflectivePool()
     glEnd();
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+
+// ─── Park ────────────────────────────────────────────────────────────────────
+void drawPark()
+{
+    glPushMatrix();
+    glTranslatef(-40.0f, 0.0f, 40.0f);
+    
+    // Fountain base
+    glColor3f(0.6f, 0.6f, 0.65f);
+    glPushMatrix();
+    glTranslatef(0, 0.01f, 0);
+    glRotatef(-90, 1, 0, 0);
+    GLUquadric* q = gluNewQuadric();
+    gluDisk(q, 0, 3.0f, 20, 1);
+    gluDeleteQuadric(q);
+    glPopMatrix();
+    
+    // Fountain water/center
+    glColor3f(0.2f, 0.6f, 0.9f);
+    glPushMatrix();
+    glTranslatef(0, 0.8f, 0);
+    glutSolidSphere(1.0f, 16, 16);
+    glPopMatrix();
+    
+    // 4 Benches
+    glColor3f(0.4f, 0.3f, 0.2f);
+    for (int i = 0; i < 4; ++i) {
+        glPushMatrix();
+        glRotatef(i * 90.0f, 0, 1, 0);
+        glTranslatef(0, 0.4f, 4.0f);
+        glScalef(2.0f, 0.2f, 0.6f);
+        glutSolidCube(1.0f);
+        glPopMatrix();
+    }
+    
+    glPopMatrix();
 }
 
 // ─── drawEnvironment ─────────────────────────────────────────────────────────
@@ -572,4 +612,5 @@ void drawEnvironment()
     drawTrees();
     drawStreetLamps();
     drawReflectivePool();
+    drawPark();
 }

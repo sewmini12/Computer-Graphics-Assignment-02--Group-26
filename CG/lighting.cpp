@@ -43,6 +43,39 @@ void initLighting()
         glLightf (GL_LIGHT2, GL_LINEAR_ATTENUATION,    0.05f);
         glLightf (GL_LIGHT2, GL_QUADRATIC_ATTENUATION, 0.01f);
     }
+
+    // ─── Street lamp 3 ──────────────────────────────────────────────────────
+    {
+        GLfloat pos3[] = { -25.0f, 5.5f, 0.0f, 1.0f };
+        GLfloat dif3[] = {  1.0f,  0.9f, 0.6f, 1.0f };
+        glLightfv(GL_LIGHT3, GL_POSITION, pos3);
+        glLightfv(GL_LIGHT3, GL_DIFFUSE,  dif3);
+        glLightf (GL_LIGHT3, GL_LINEAR_ATTENUATION, 0.05f);
+    }
+
+    // ─── Street lamp 4 ──────────────────────────────────────────────────────
+    {
+        GLfloat pos4[] = { 25.0f, 5.5f, 0.0f, 1.0f };
+        GLfloat dif4[] = {  1.0f,  0.9f, 0.6f, 1.0f };
+        glLightfv(GL_LIGHT4, GL_POSITION, pos4);
+        glLightfv(GL_LIGHT4, GL_DIFFUSE,  dif4);
+        glLightf (GL_LIGHT4, GL_LINEAR_ATTENUATION, 0.05f);
+    }
+
+    // ─── Street lamp 5 ──────────────────────────────────────────────────────
+    {
+        GLfloat pos5[] = { 0.0f, 5.5f, -25.0f, 1.0f };
+        GLfloat dif5[] = {  1.0f,  0.9f, 0.6f, 1.0f };
+        glLightfv(GL_LIGHT5, GL_POSITION, pos5);
+        glLightfv(GL_LIGHT5, GL_DIFFUSE,  dif5);
+        glLightf (GL_LIGHT5, GL_LINEAR_ATTENUATION, 0.05f);
+    }
+
+    // ─── Fog ────────────────────────────────────────────────────────────────
+    glEnable(GL_FOG);
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogf(GL_FOG_START, 60.0f);
+    glFogf(GL_FOG_END,   150.0f);
 }
 
 // ─── updateLighting ───────────────────────────────────────────────────────────
@@ -80,6 +113,9 @@ void updateLighting()
     }
     glClearColor(r, g, b, 1.0f);
 
+    GLfloat fogColor[] = { r, g, b, 1.0f };
+    glFogfv(GL_FOG_COLOR, fogColor);
+
     // ── Sun light direction ───────────────────────────────────────────────────
     GLfloat sunPos[] = { sunAzi, sunElev * 2.0f, -0.5f, 0.0f };
     glLightfv(GL_LIGHT0, GL_POSITION, sunPos);
@@ -102,8 +138,33 @@ void updateLighting()
     if (sunElev < 0.05f) {
         glEnable(GL_LIGHT1);
         glEnable(GL_LIGHT2);
+        glEnable(GL_LIGHT3);
+        glEnable(GL_LIGHT4);
+        glEnable(GL_LIGHT5);
     } else {
         glDisable(GL_LIGHT1);
         glDisable(GL_LIGHT2);
+        glDisable(GL_LIGHT3);
+        glDisable(GL_LIGHT4);
+        glDisable(GL_LIGHT5);
+    }
+}
+
+// ─── drawMoon ────────────────────────────────────────────────────────────────
+void drawMoon()
+{
+    float sunAngle = (timeOfDay - 0.25f) * 2.0f * 3.14159265f;
+    float sunElev  = sinf(sunAngle);
+    if (sunElev < 0.0f) {
+        float moonAzi = cosf(sunAngle + 3.14159265f); // opposite to sun
+        float moonElev = sinf(sunAngle + 3.14159265f);
+        
+        glDisable(GL_LIGHTING);
+        glPushMatrix();
+        glTranslatef(moonAzi * 120.0f, moonElev * 120.0f, -0.5f * 120.0f);
+        glColor3f(0.9f, 0.9f, 0.95f);
+        glutSolidSphere(8.0f, 20, 20);
+        glPopMatrix();
+        glEnable(GL_LIGHTING);
     }
 }

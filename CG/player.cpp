@@ -121,6 +121,26 @@ void updatePlayer(float dt)
         headTurn  *= 0.88f;
     }
 
+    // Gravity & Jump
+    playerVelY -= 9.8f * dt;
+    playerY += playerVelY * dt;
+    
+    // Will be overridden by getGroundHeight later if needed, but for now clamp to 0
+    float groundY = getGroundHeight(playerX, playerZ);
+    if (playerY <= groundY) {
+        playerY = groundY;
+        playerVelY = 0.0f;
+        isGrounded = true;
+    } else {
+        isGrounded = false;
+    }
+
+    if (isMoving && isSprinting && stamina > 0) {
+        stamina -= 30.0f * dt; 
+    } else {
+        stamina = fmin(100.f, stamina + 10.0f * dt);
+    }
+
     isMoving = false;
 }
 
@@ -137,7 +157,7 @@ void movePlayer(unsigned char key)
 
     float dx = 0.0f, dz = 0.0f;
     float currentSpeed = playerSpeed;
-    if (isSprinting) {
+    if (isSprinting && stamina > 0) {
         currentSpeed = playerSpeed * 1.8f;
     }
 
@@ -154,12 +174,33 @@ void movePlayer(unsigned char key)
         case 'd': case 'D':
             dx = rightX * currentSpeed; dz = rightZ * currentSpeed;
             targetPlayerAngle = -camYaw - 90.0f; break;   // face right
+        case ' ':
+            if (isGrounded) {
+                playerVelY = 5.0f;
+                isGrounded = false;
+            }
+            return;
         default: return;
     }
 
     float nx = playerX + dx, nz = playerZ + dz;
-    if (!checkCollision(nx, playerZ)) playerX = nx;
-    if (!checkCollision(playerX, nz)) playerZ = nz;
+    bool movedX = false, movedZ = false;
+
+    if (!checkCollision(nx, playerZ)) {
+        playerX = nx;
+        movedX = true;
+    }
+    if (!checkCollision(playerX, nz)) {
+        playerZ = nz;
+        movedZ = true;
+    }
+
+    // Improve: add a small push-out vector when both fail
+    if (!movedX && !movedZ && (dx != 0.0f || dz != 0.0f)) {
+        // Try a smaller step just to slide slightly away
+        if (!checkCollision(playerX - dx * 0.5f, playerZ)) playerX -= dx * 0.5f;
+        if (!checkCollision(playerX, playerZ - dz * 0.5f)) playerZ -= dz * 0.5f;
+    }
 
     const float BORDER = 93.0f;
     if (playerX < -BORDER) playerX = -BORDER;

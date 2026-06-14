@@ -395,53 +395,62 @@ void drawHUD()
     float W = (float)windowWidth;
     float H = (float)windowHeight;
 
-    // ─── TOP-LEFT: Mission panel ──────────────────────────────────────────────
-    float mlW = 360.0f, mlH = 130.0f;
+    // ─── LEFT: Mission list panel ─────────────────────────────────────────────
+    float mlW = 360.0f, mlH = 30.0f + MAX_MISSIONS * 20.0f;
     float mlX = 10.0f, mlY = H - mlH - 10.0f;
 
     drawRect(mlX, mlY, mlW, mlH, 0.03f, 0.03f, 0.03f, 0.70f);
     drawRectOutline(mlX, mlY, mlW, mlH, 0.85f, 0.70f, 0.10f, 0.6f, 1.5f);
 
-    // "MISSION" label
     drawRect(mlX, mlY + mlH - 28, mlW, 28, 0.15f, 0.12f, 0.02f, 0.85f);
     glColor3f(0.95f, 0.80f, 0.10f);
-    drawStr(mlX + 12, mlY + mlH - 18, "[ MISSION ]", GLUT_BITMAP_HELVETICA_18);
+    drawStr(mlX + 12, mlY + mlH - 18, "[ MISSION LOG ]", GLUT_BITMAP_HELVETICA_18);
 
-    if (currentMission < MAX_MISSIONS) {
-        Mission& m = missions[currentMission];
+    for (int i = 0; i < MAX_MISSIONS; ++i) {
+        Mission& m = missions[i];
+        float rowY = mlY + mlH - 45.0f - i * 20.0f;
+        char prefix[8] = "   ";
+        if (m.completed) {
+            strcpy(prefix, "[V]");
+            glColor3f(0.4f, 0.8f, 0.4f);
+        } else if (i == currentMission) {
+            strcpy(prefix, "-> ");
+            glColor3f(0.9f, 0.8f, 0.2f);
+        } else {
+            strcpy(prefix, "[ ]");
+            glColor3f(0.6f, 0.6f, 0.6f);
+        }
+        
         char line[128];
-
-        glColor3f(1.0f, 1.0f, 1.0f);
-        snprintf(line, 128, "%d.  %s", currentMission + 1, m.title);
-        drawStr(mlX + 12, mlY + mlH - 52, line, GLUT_BITMAP_HELVETICA_18);
-
-        glColor3f(0.75f, 0.90f, 0.75f);
-        snprintf(line, 128, "   %s", m.description);
-        drawStr(mlX + 12, mlY + mlH - 74, line, GLUT_BITMAP_HELVETICA_12);
-
-        // Distance
-        float ddx = playerX - m.targetX;
-        float ddz = playerZ - m.targetZ;
-        float dist = sqrtf(ddx * ddx + ddz * ddz);
-        glColor3f(0.5f, 0.85f, 1.0f);
-        snprintf(line, 128, "   Distance to target:  %.0f m", dist);
-        drawStr(mlX + 12, mlY + mlH - 92, line, GLUT_BITMAP_HELVETICA_12);
-
-        // Mission progress bar
-        float prog = (float)totalCompleted / (float)MAX_MISSIONS;
-        drawProgressBar(mlX + 12, mlY + 8, mlW - 24, 10, prog, 0.2f, 0.9f, 0.4f);
-
-        glColor3f(0.5f, 0.8f, 0.5f);
-        snprintf(line, 128, "Progress: %d / %d", totalCompleted, MAX_MISSIONS);
-        drawStr(mlX + 12, mlY + 22, line, GLUT_BITMAP_HELVETICA_12);
-    } else {
-        glColor3f(0.3f, 1.0f, 0.5f);
-        drawStr(mlX + 12, mlY + mlH - 58, "ALL MISSIONS COMPLETE!", GLUT_BITMAP_HELVETICA_18);
+        snprintf(line, 128, "%s %s", prefix, m.title);
+        drawStr(mlX + 12, rowY, line, GLUT_BITMAP_HELVETICA_12);
+        
+        if (i == currentMission && m.timeLimit > 0.0f) {
+            snprintf(line, 128, "Time Left: %.1f", missionTimeLeft);
+            drawStr(mlX + 220, rowY, line, GLUT_BITMAP_HELVETICA_12);
+        }
     }
 
-    // ─── TOP-RIGHT: Score + Time panel ───────────────────────────────────────
+    // ─── TOP-RIGHT: Minimap ───────────────────────────────────────────────────
+    float mapX = W - 130.0f, mapY = H - 130.0f;
+    drawRect(mapX, mapY, 120.0f, 120.0f, 0.0f, 0.0f, 0.0f, 0.55f);
+    
+    // Player dot
+    float px = mapX + 60.0f + (playerX / 100.0f) * 55.0f;
+    float py = mapY + 60.0f + (playerZ / 100.0f) * 55.0f;
+    drawRect(px - 3.0f, py - 3.0f, 6.0f, 6.0f, 0.2f, 0.8f, 0.2f, 1.0f);
+
+    // Current mission marker on map
+    if (currentMission < MAX_MISSIONS) {
+        Mission& m = missions[currentMission];
+        float mx = mapX + 60.0f + (m.targetX / 100.0f) * 55.0f;
+        float my = mapY + 60.0f + (m.targetZ / 100.0f) * 55.0f;
+        drawRect(mx - 2.0f, my - 2.0f, 4.0f, 4.0f, 1.0f, 0.6f, 0.1f, 1.0f);
+    }
+
+    // ─── RIGHT: Score + Time panel (below minimap) ────────────────────────────
     float srW = 230.0f, srH = 110.0f;
-    float srX = W - srW - 10.0f, srY = H - srH - 10.0f;
+    float srX = W - srW - 10.0f, srY = mapY - srH - 10.0f;
 
     drawRect(srX, srY, srW, srH, 0.03f, 0.03f, 0.03f, 0.70f);
     drawRectOutline(srX, srY, srW, srH, 0.85f, 0.70f, 0.10f, 0.6f, 1.5f);
@@ -472,6 +481,19 @@ void drawHUD()
     glColor3f(0.80f, 0.80f, 0.70f);
     snprintf(buf, 64, "In-Game: %02d:%02d", hh, mm);
     drawStr(srX + 12, srY + 10, buf, GLUT_BITMAP_HELVETICA_12);
+    
+    // ─── Stamina Bar ──────────────────────────────────────────────────────────
+    if (isSprinting || stamina < 99.0f) {
+        float barY = srY - 25.0f;
+        float barW = 150.0f;
+        float bw = (stamina / 100.0f) * barW;
+        float r = 0.2f, g = 0.8f, b = 0.2f;
+        if (stamina < 50.0f) { r = 0.8f; g = 0.8f; b = 0.1f; }
+        if (stamina < 20.0f) { r = 0.9f; g = 0.2f; b = 0.2f; }
+        
+        drawRect(srX, barY, barW, 15.0f, 0.1f, 0.1f, 0.1f, 0.8f); // bg
+        drawRect(srX, barY, bw, 15.0f, r, g, b, 0.9f); // fill
+    }
 
     // ─── BOTTOM-LEFT: Controls ────────────────────────────────────────────────
     float clW = 300.0f, clH = 100.0f;

@@ -6,12 +6,23 @@
 #include "ui.h"
 
 Mission missions[MAX_MISSIONS] = {
-    { "First Steps",    "Reach the North Gate",           0.0f,  -60.0f, 4.0f, true,  false },
-    { "City Center",    "Visit the City Hall plaza",       0.0f,   0.0f,  5.0f, false, false },
-    { "East District",  "Explore the east apartments",    40.0f, -40.0f,  5.0f, false, false },
-    { "Park Walk",      "Find the quiet west park",       -40.0f,  40.0f, 5.0f, false, false },
-    { "South Bridge",   "Reach the south bridge end",      0.0f,  70.0f,  4.0f, false, false },
-    { "Full Explorer",  "Return to the start point",       0.0f,   5.0f,  4.0f, false, false },
+    { "First Steps",    "Reach the North Gate",           0.0f,  -60.0f, 4.0f, true,  false, 0.0f },
+    { "City Center",    "Visit the City Hall plaza",       0.0f,   0.0f,  5.0f, false, false, 0.0f },
+    { "East District",  "Explore the east apartments",    40.0f, -40.0f,  5.0f, false, false, 0.0f },
+    { "Park Walk",      "Find the quiet west park",       -40.0f,  40.0f, 5.0f, false, false, 0.0f },
+    { "South Bridge",   "Reach the south bridge end",      0.0f,  70.0f,  4.0f, false, false, 0.0f },
+    { "Full Explorer",  "Return to the start point",       0.0f,   5.0f,  4.0f, false, false, 0.0f },
+    { "West Tower",     "Reach the skyscraper base",     -60.0f,  10.0f, 5.0f, false, false, 0.0f },
+    { "Park Fountain",  "Find the fountain",             -40.0f,  40.0f, 4.0f, false, false, 0.0f },
+    { "Finish Line",    "Return to spawn fast!",           0.0f,   5.0f, 4.0f, false, false, 45.0f },
+};
+
+Collectible collectibles[10] = {
+    { 15.0f, 15.0f, false }, { -15.0f, -15.0f, false },
+    { 25.0f, -35.0f, false }, { -35.0f, 25.0f, false },
+    { 50.0f, 15.0f, false }, { -15.0f, 50.0f, false },
+    { 65.0f, -25.0f, false }, { -45.0f, -65.0f, false },
+    { 75.0f, 75.0f, false }, { -75.0f, -75.0f, false }
 };
 
 int currentMission  = 0;
@@ -39,6 +50,11 @@ void initMissions()
     gameElapsedTime = 0.0f;
     gameCompleted   = false;
     completionTime  = 0.0f;
+    missionTimeLeft = missions[0].timeLimit;
+    
+    for (int i = 0; i < 10; ++i) {
+        collectibles[i].collected = false;
+    }
 }
 
 void updateMissions()
@@ -53,8 +69,27 @@ void updateMissions()
 
     if (currentMission >= MAX_MISSIONS) return;
 
+    // Collectibles check (simplified checkPickup call, assuming it returns index)
+    // collision.h handles checkPickup
+    extern int checkPickup(float x, float z, float radius);
+    int pickupIdx = checkPickup(playerX, playerZ, 2.0f);
+    if (pickupIdx >= 0) {
+        collectibles[pickupIdx].collected = true;
+        score += 25;
+        setFlashMessage("Found Collectible! +25 pts", 2.5f);
+    }
+
     Mission& m = missions[currentMission];
     if (!m.active || m.completed) return;
+
+    if (m.timeLimit > 0.0f) {
+        missionTimeLeft -= 0.016f;
+        if (missionTimeLeft <= 0.0f) {
+            score -= 50;
+            setFlashMessage("Mission Failed: Time's up! -50 pts", 3.0f);
+            missionTimeLeft = m.timeLimit;
+        }
+    }
 
     float dx   = playerX - m.targetX;
     float dz   = playerZ - m.targetZ;
@@ -72,6 +107,7 @@ void updateMissions()
         if (next < MAX_MISSIONS) {
             missions[next].active = true;
             currentMission = next;
+            missionTimeLeft = missions[next].timeLimit;
             snprintf(msg, 128, "Mission Complete! +100 pts  |  Next: %s",
                      missions[next].title);
             setFlashMessage(msg, 3.5f);
@@ -138,5 +174,18 @@ void drawMissionMarkers()
     glutSolidOctahedron();
 
     glPopMatrix();
+    
+    // Draw collectibles
+    for (int i = 0; i < 10; ++i) {
+        if (!collectibles[i].collected) {
+            glPushMatrix();
+            glTranslatef(collectibles[i].x, 1.0f + 0.3f * sinf(markerPulse * 2.0f), collectibles[i].z);
+            glRotatef(markerPulse * 50.0f, 0, 1, 0);
+            glColor3f(0.8f, 0.2f, 0.8f);
+            glutSolidOctahedron();
+            glPopMatrix();
+        }
+    }
+    
     glEnable(GL_LIGHTING);
 }
