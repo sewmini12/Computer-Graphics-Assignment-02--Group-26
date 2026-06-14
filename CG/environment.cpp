@@ -565,6 +565,7 @@ void drawReflectivePool()
     glEnd();
     glDepthMask(GL_TRUE);
     glDisable(GL_BLEND);
+}
 
 // ─── Park ────────────────────────────────────────────────────────────────────
 void drawPark()

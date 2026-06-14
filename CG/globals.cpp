@@ -42,5 +42,5 @@ int windowHeight =  800;
 bool showReflection    = false;
 bool showTransformDemo = false;
 bool splitScreen       = false;
-bool isSprinting       = false;
+
 
