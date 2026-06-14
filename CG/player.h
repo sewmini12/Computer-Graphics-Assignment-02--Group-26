@@ -11,6 +11,10 @@ void movePlayerSpecial(int key);
 // Draw the player character (coloured humanoid proxy)
 void drawPlayer();
 
+// Draw only the player's body (without shadow/reflections) for stencil reflection
+void drawPlayerBody();
+float getPlayerBobY();
+
 // Update animation timers (call every frame)
 void updatePlayer(float dt);
 

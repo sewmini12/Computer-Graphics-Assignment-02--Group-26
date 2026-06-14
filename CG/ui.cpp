@@ -272,6 +272,115 @@ static void drawScoreboard()
     glDisable(GL_BLEND);
 }
 
+// ─── CG Concept: 2D Transformation Demo Panel ────────────────────────────────
+static void drawDemoTriangle(float cx, float cy, float r, float g, float b, const char* label, int transformType)
+{
+    // Define base triangle relative to (0,0)
+    float x[3] = { 0.0f, -15.0f, 15.0f };
+    float y[3] = { 20.0f, -15.0f, -15.0f };
+    float tx[3], ty[3];
+
+    for (int i = 0; i < 3; ++i) {
+        float px = x[i];
+        float py = y[i];
+        switch (transformType) {
+            case 0: // Original (white)
+                tx[i] = px;
+                ty[i] = py;
+                break;
+            case 1: // Translated +30px right (cyan)
+                tx[i] = px + 30.0f;
+                ty[i] = py;
+                break;
+            case 2: { // Rotated 45 degrees (yellow)
+                float a = 45.0f * 3.14159265f / 180.0f;
+                tx[i] = px * cosf(a) - py * sinf(a);
+                ty[i] = px * sinf(a) + py * cosf(a);
+                break;
+            }
+            case 3: // Scaled 1.5x (green)
+                tx[i] = px * 1.5f;
+                ty[i] = py * 1.5f;
+                break;
+            case 4: // Sheared Sx=0.5 (orange)
+                tx[i] = px + 0.5f * py;
+                ty[i] = py;
+                break;
+            case 5: // Reflected across Y-axis (magenta)
+                tx[i] = -px;
+                ty[i] = py;
+                break;
+            default:
+                tx[i] = px;
+                ty[i] = py;
+                break;
+        }
+    }
+
+    // Draw coordinate axis/crosshair for reference
+    glColor4f(0.3f, 0.3f, 0.4f, 0.4f);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBegin(GL_LINES);
+        glVertex2f(cx - 30.0f, cy);
+        glVertex2f(cx + 30.0f, cy);
+        glVertex2f(cx, cy - 30.0f);
+        glVertex2f(cx, cy + 30.0f);
+    glEnd();
+    glDisable(GL_BLEND);
+
+    // Draw the transformed triangle
+    glColor3f(r, g, b);
+    glLineWidth(2.0f);
+    glBegin(GL_LINE_LOOP);
+        glVertex2f(cx + tx[0], cy + ty[0]);
+        glVertex2f(cx + tx[1], cy + ty[1]);
+        glVertex2f(cx + tx[2], cy + ty[2]);
+    glEnd();
+    glLineWidth(1.0f);
+
+    // Draw the label centered under the slot
+    glColor3f(1.0f, 1.0f, 1.0f);
+    int labelLen = (int)strlen(label);
+    float lx = cx - (labelLen * 3.2f); // 3.2px approx half character width
+    glRasterPos2f(lx, cy - 32.0f);
+    for (int i = 0; i < labelLen; ++i) {
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, label[i]);
+    }
+}
+
+static void drawTransformDemoPanel()
+{
+    float W = (float)windowWidth;
+    float H = (float)windowHeight;
+
+    // Panel dimensions (needs to fit 6 slots)
+    float panelW = 750.0f;
+    float panelH = 120.0f;
+    float panelX = (W - panelW) * 0.5f;
+    float panelY = 10.0f;
+
+    // Background
+    drawRect(panelX, panelY, panelW, panelH, 0.04f, 0.03f, 0.08f, 0.85f);
+    drawRectOutline(panelX, panelY, panelW, panelH, 0.75f, 0.55f, 1.0f, 0.9f, 2.0f);
+
+    // Panel title / Header
+    drawRect(panelX, panelY + panelH - 22, panelW, 22, 0.12f, 0.07f, 0.22f, 0.95f);
+    glColor3f(0.8f, 0.6f, 1.0f);
+    drawStr(panelX + 12, panelY + panelH - 15, "[ 2D GEOMETRIC TRANSFORMATION DEMO ]", GLUT_BITMAP_HELVETICA_12);
+
+    // 6 Slots
+    float slotWidth = panelW / 6.0f;
+    float slotY = panelY + 45.0f;
+
+    drawDemoTriangle(panelX + 0.5f * slotWidth, slotY, 1.0f, 1.0f, 1.0f, "Original", 0);
+    drawDemoTriangle(panelX + 1.5f * slotWidth, slotY, 0.0f, 1.0f, 1.0f, "Translate (+30x)", 1);
+    drawDemoTriangle(panelX + 2.5f * slotWidth, slotY, 1.0f, 1.0f, 0.0f, "Rotate (45 deg)", 2);
+    drawDemoTriangle(panelX + 3.5f * slotWidth, slotY, 0.0f, 1.0f, 0.0f, "Scale (1.5x)", 3);
+    drawDemoTriangle(panelX + 4.5f * slotWidth, slotY, 1.0f, 0.5f, 0.0f, "Shear (Sx=0.5)", 4);
+    drawDemoTriangle(panelX + 5.5f * slotWidth, slotY, 1.0f, 0.0f, 1.0f, "Reflect (Y-axis)", 5);
+}
+
 // ─── MAIN HUD (in-game) ───────────────────────────────────────────────────────
 void drawHUD()
 {
@@ -401,50 +510,54 @@ void drawHUD()
     snprintf(buf, 64, "DIR: %s", dirLabel);
     drawStr(mpX + 10, 24, buf, GLUT_BITMAP_HELVETICA_12);
 
-    // ─── BOTTOM-CENTER: CG Transforms Info Panel ─────────────────────────────
-    // Shows the 4 fundamental CG transforms currently active on the player
-    float tpW = 360.0f, tpH = 120.0f;
-    float tpX = (W - tpW) * 0.5f;
-    float tpY = 10.0f;
+    if (showTransformDemo) {
+        drawTransformDemoPanel();
+    } else {
+        // ─── BOTTOM-CENTER: CG Transforms Info Panel ─────────────────────────────
+        // Shows the 4 fundamental CG transforms currently active on the player
+        float tpW = 360.0f, tpH = 120.0f;
+        float tpX = (W - tpW) * 0.5f;
+        float tpY = 10.0f;
 
-    // Panel background
-    drawRect(tpX, tpY, tpW, tpH, 0.04f, 0.03f, 0.08f, 0.78f);
-    drawRectOutline(tpX, tpY, tpW, tpH, 0.45f, 0.25f, 0.80f, 0.85f, 1.5f);
+        // Panel background
+        drawRect(tpX, tpY, tpW, tpH, 0.04f, 0.03f, 0.08f, 0.78f);
+        drawRectOutline(tpX, tpY, tpW, tpH, 0.45f, 0.25f, 0.80f, 0.85f, 1.5f);
 
-    // Header
-    drawRect(tpX, tpY + tpH - 22, tpW, 22, 0.12f, 0.07f, 0.22f, 0.90f);
-    glColor3f(0.75f, 0.55f, 1.0f);
-    drawStr(tpX + 12, tpY + tpH - 14, "[ CG TRANSFORMS — PLAYER ]", GLUT_BITMAP_HELVETICA_12);
+        // Header
+        drawRect(tpX, tpY + tpH - 22, tpW, 22, 0.12f, 0.07f, 0.22f, 0.90f);
+        glColor3f(0.75f, 0.55f, 1.0f);
+        drawStr(tpX + 12, tpY + tpH - 14, "[ CG TRANSFORMS — PLAYER ]", GLUT_BITMAP_HELVETICA_12);
 
-    // Row 1 — Translation
-    glColor3f(0.30f, 0.90f, 0.50f);
-    snprintf(buf, 128, "T  Translation   : (%+.1f, %.2f, %+.1f)",
-             playerX, playerY, playerZ);
-    drawStr(tpX + 10, tpY + tpH - 40, buf, GLUT_BITMAP_HELVETICA_12);
+        // Row 1 — Translation
+        glColor3f(0.30f, 0.90f, 0.50f);
+        snprintf(buf, 128, "T  Translation   : (%+.1f, %.2f, %+.1f)",
+                 playerX, playerY, playerZ);
+        drawStr(tpX + 10, tpY + tpH - 40, buf, GLUT_BITMAP_HELVETICA_12);
 
-    // Row 2 — Rotation
-    glColor3f(0.40f, 0.75f, 1.00f);
-    snprintf(buf, 128, "R  Rotation (Y)  :  %.1f deg  [leg swing: %.1f]",
-             playerAngle, getPlayerLegSwing());
-    drawStr(tpX + 10, tpY + tpH - 57, buf, GLUT_BITMAP_HELVETICA_12);
+        // Row 2 — Rotation
+        glColor3f(0.40f, 0.75f, 1.00f);
+        snprintf(buf, 128, "R  Rotation (Y)  :  %.1f deg  [leg swing: %.1f]",
+                 playerAngle, getPlayerLegSwing());
+        drawStr(tpX + 10, tpY + tpH - 57, buf, GLUT_BITMAP_HELVETICA_12);
 
-    // Row 3 — Reflection
-    glColor3f(1.00f, 0.65f, 0.25f);
-    drawStr(tpX + 10, tpY + tpH - 74,
-            "Ref Reflection(Y): Scale(1,-1,1) — mirror below ground",
-            GLUT_BITMAP_HELVETICA_12);
+        // Row 3 — Reflection
+        glColor3f(1.00f, 0.65f, 0.25f);
+        drawStr(tpX + 10, tpY + tpH - 74,
+                "Ref Reflection(Y): Scale(1,-1,1) — mirror below ground",
+                GLUT_BITMAP_HELVETICA_12);
 
-    // Row 4 — Shearing (shadow)
-    glColor3f(1.00f, 0.35f, 0.45f);
-    drawStr(tpX + 10, tpY + tpH - 91,
-            "Sh  Shear Shadow : M[1][0]=sunX, M[1][2]=sunZ (oblique proj)",
-            GLUT_BITMAP_HELVETICA_12);
+        // Row 4 — Shearing (shadow)
+        glColor3f(1.00f, 0.35f, 0.45f);
+        drawStr(tpX + 10, tpY + tpH - 91,
+                "Sh  Shear Shadow : M[1][0]=sunX, M[1][2]=sunZ (oblique proj)",
+                GLUT_BITMAP_HELVETICA_12);
 
-    // Leg movement indicator
-    glColor3f(0.70f, 0.70f, 0.70f);
-    drawStr(tpX + 10, tpY + 6,
-            "Legs: Thigh rot -> Knee bend -> Shin -> Ankle -> Foot (translation+scale)",
-            GLUT_BITMAP_HELVETICA_12);
+        // Leg movement indicator
+        glColor3f(0.70f, 0.70f, 0.70f);
+        drawStr(tpX + 10, tpY + 6,
+                "Legs: Thigh rot -> Knee bend -> Shin -> Ankle -> Foot (translation+scale)",
+                GLUT_BITMAP_HELVETICA_12);
+    }
 
     // ─── CENTER FLASH message ─────────────────────────────────────────────────
     if (flashTimer < flashDuration) {
